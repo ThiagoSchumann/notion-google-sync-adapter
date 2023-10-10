@@ -1,0 +1,23 @@
+@startuml
+!define RECTANGLE class
+
+RECTANGLE Adapter {
+  +request()
+}
+
+RECTANGLE NotionAPI {
+  +getTasks()
+  +createTask()
+  +updateTask()
+}
+
+RECTANGLE GoogleAPI {
+  +getEvents()
+  +createEvent()
+  +updateEvent()
+}
+
+Adapter --> NotionAPI: Uses
+Adapter --> GoogleAPI: Uses
+
+@enduml

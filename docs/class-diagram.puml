@@ -1,0 +1,22 @@
+@startuml
+
+class NotionAdapter {
+  +getTasks()
+  +createTask()
+  +updateTask()
+}
+
+class GoogleAdapter {
+  +getEvents()
+  +createEvent()
+  +updateEvent()
+}
+
+class SyncService {
+  +synchronize()
+}
+
+NotionAdapter --|> SyncService
+GoogleAdapter --|> SyncService
+
+@enduml

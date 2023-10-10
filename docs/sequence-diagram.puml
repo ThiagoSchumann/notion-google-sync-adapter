@@ -1,0 +1,20 @@
+@startuml
+
+participant NotionAdapter
+participant SyncService
+participant GoogleAdapter
+
+activate SyncService
+SyncService -> NotionAdapter: getTasks()
+activate NotionAdapter
+NotionAdapter --> SyncService: tasks
+deactivate NotionAdapter
+
+SyncService -> GoogleAdapter: createEvents(tasks)
+activate GoogleAdapter
+GoogleAdapter --> SyncService: success
+deactivate GoogleAdapter
+
+deactivate SyncService
+
+@enduml
