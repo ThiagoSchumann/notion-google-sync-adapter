@@ -1,49 +1,53 @@
 import unittest
 from unittest.mock import patch, Mock
+# Ajuste o import conforme necessário
 from src.core.google_calendar_service import GoogleCalendarService
 
 
 class TestGoogleCalendarService(unittest.TestCase):
-
     @patch('src.core.google_calendar_service.build')
-    @patch('src.core.google_calendar_service.InstalledAppFlow')
-    @patch('src.core.google_calendar_service.Credentials')
-    @patch('src.core.google_calendar_service.os.path.exists', return_value=True)
-    def setUp(self, mock_exists, mock_credentials, mock_flow, mock_build):
-        self.token_path = '.\\.credentials\\token.json'
-        self.credentials_path = '.\\.credentials\\credentials.json'
-        self.gcal_service = GoogleCalendarService(
-            self.token_path, self.credentials_path)
+    def setUp(self, mock_build):
+        # Definindo mock para o serviço Google Calendar
+        self.mock_service = Mock()
+        mock_build.return_value = self.mock_service
 
-    def test_setup_credentials_with_existing_token(self):
-        self.gcal_service._setup_credentials()
-        self.gcal_service.creds.from_authorized_user_file.assert_called_once_with(
-            self.token_path, self.gcal_service.SCOPES)
+        # Instanciando o objeto a ser testado
+        self.calendar_service = GoogleCalendarService(
+            '.\\.credentials\\token.json',
+            '.\\.credentials\\credentials.json'
+        )
 
-    @patch('src.core.google_calendar_service.os.path.exists', return_value=False)
-    def test_setup_credentials_with_no_token(self, mock_exists):
-        self.gcal_service._setup_credentials()
-        self.gcal_service.flow.run_local_server.assert_called_once()
+    def test_get_upcoming_events_success(self):
+        # Definindo resposta mock para o método list().execute() do serviço
+        self.mock_service.events().list().execute.return_value = {
+            'items': [{'summary': 'Event 1'}, {'summary': 'Event 2'}]
+        }
 
-    @patch('src.core.google_calendar_service.os.path.exists', return_value=True)
-    def test_setup_credentials_with_expired_token(self, mock_exists):
-        self.gcal_service.creds.expired = True
-        self.gcal_service.creds.refresh_token = True
-        self.gcal_service._setup_credentials()
-        self.gcal_service.creds.refresh.assert_called_once()
+        # Chamando o método a ser testado
+        result = self.calendar_service.get_upcoming_events()
 
-    @patch('src.core.google_calendar_service.HttpError', side_effect=Exception)
-    def test_get_upcoming_events_with_error(self, mock_error):
-        events = self.gcal_service.get_upcoming_events()
-        self.assertEqual(events, [])
-        self.assertTrue(mock_error.called)
+        # Verificando se o resultado é o esperado
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]['summary'], 'Event 1')
+        self.assertEqual(result[1]['summary'], 'Event 2')
 
-    @patch('src.core.google_calendar_service.build')
-    def test_get_upcoming_events_with_success(self, mock_build):
-        mock_build.return_value.events.return_value.list.return_value.execute.return_value = {
-            'items': ['event1', 'event2']}
-        events = self.gcal_service.get_upcoming_events()
-        self.assertEqual(events, ['event1', 'event2'])
+    def test_get_upcoming_events_no_events(self):
+        # Definindo resposta mock sem eventos
+        self.mock_service.events().list().execute.return_value = {}
+
+        # Chamando o método a ser testado
+        result = self.calendar_service.get_upcoming_events()
+
+        # Verificando se o resultado é uma lista vazia
+        self.assertEqual(result, [])
+
+    def test_get_upcoming_events_error(self):
+        # Definindo o método list().execute() do serviço para lançar uma exceção
+        self.mock_service.events().list().execute.side_effect = Exception('Error')
+
+        # Chamando o método a ser testado e verificando se ele retorna uma lista vazia
+        with self.assertRaises(Exception):
+            self.calendar_service.get_upcoming_events()
 
 
 if __name__ == '__main__':

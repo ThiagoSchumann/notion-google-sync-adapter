@@ -1,7 +1,7 @@
 import os
 
 
-def list_files(start_directory, ignore_directories=('venv', '.git')):
+def list_files(start_directory, ignore_directories=('myenv', '.git')):
     for root, dirs, files in os.walk(start_directory):
         # Ignorar o conteúdo das pastas especificadas
         dirs[:] = [d for d in dirs if d not in ignore_directories]
