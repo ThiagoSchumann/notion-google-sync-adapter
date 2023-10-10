@@ -1,12 +1,15 @@
-# class SyncService:
-#    def sync(self):
-#        # Implementação inicial
-#        return True
+class SyncService:
+    def __init__(self, google_calendar_service, notion_service):
+        self.google_calendar_service = google_calendar_service
+        self.notion_service = notion_service
 
-from gcsa.google_calendar import GoogleCalendar
+    def sync(self):
+        # Obtenha os dados do Google Calendar e do Notion
+        google_events = self.google_calendar_service.get_upcoming_events()
+        notion_data = self.notion_service.get_notion_data()
 
-calendar = GoogleCalendar('thiagoarturschumann@gmail.com')
+        # Implemente a lógica de sincronização entre Google Calendar e Notion
+        # ...
 
-
-for event in calendar:
-    print(event)
+        # Atualize os dados no Notion conforme necessário
+        self.notion_service.update_notion_data(synced_data)
